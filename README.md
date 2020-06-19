@@ -1,2 +1,3 @@
-# INTERSPEECH-2020
-Fine-tuning Speech-BERT and RoBERTa for the task of emotion recognition 
+# Example for the training script
+
+CUDA_VISIBLE_DEVICES=5,6 python train.py --data './T_data/mosei' --restore-file None --task emotion_prediction --reset-optimizer --reset-dataloader --reset-meters --init-token 0 --separator-token 2 --arch robertEMO_large --criterion emotion_prediction_cri --num-classes 1 --dropout 0.1 --attention-dropout 0.1 --weight-decay 0.1 --optimizer adam --adam-betas "(0.9, 0.98)" --adam-eps 1e-06 --clip-norm 0.0 --lr-scheduler polynomial_decay --lr 1e-05 --total-num-update 11000 --warmup-updates 600 --max-epoch 11 --best-checkpoint-metric loss  --encoder-attention-heads 4 --batch-size 1 --encoder-layers-cross 1   --no-epoch-checkpoints --update-freq 8 --find-unused-parameters --ddp-backend=no_c10d --regression-target-mos   --a-only  --t-only  --data-raw /hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/mosei --pooler-dropout 0.1 --stack-up

@@ -1,0 +1,7 @@
+cffi
+cython
+numpy
+regex
+sacrebleu
+torch
+tqdm
