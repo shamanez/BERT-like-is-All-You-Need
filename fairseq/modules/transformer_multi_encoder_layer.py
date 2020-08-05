@@ -82,13 +82,13 @@ class TransformerMultiEncoderLayer(nn.Module):
         #     encoder_decoder_attention=self.encoder_decorder_attention
         # )
 
-        # layer norm associated with the self attention layer
-        self.self_attn_layer_norm = LayerNorm(self.embedding_dim, export=export)
-        #self.fc1 = nn.Linear(self.embedding_dim, ffn_embedding_dim)  #Final transform
-        #self.fc2 = nn.Linear(ffn_embedding_dim, self.embedding_dim)
+        # # layer norm associated with the self attention layer
+        # self.self_attn_layer_norm = LayerNorm(self.embedding_dim, export=export)
+        # self.fc1 = nn.Linear(self.embedding_dim, ffn_embedding_dim)  #Final transform
+        # self.fc2 = nn.Linear(ffn_embedding_dim, self.embedding_dim)
 
-        # layer norm associated with the position wise feed-forward NN
-        self.final_layer_norm = LayerNorm(self.embedding_dim, export=export)
+        # # layer norm associated with the position wise feed-forward NN
+        # self.final_layer_norm = LayerNorm(self.embedding_dim, export=export)
 
     def forward(   #If we are modifying this we need three modalities  #check transformers.py file
         self,
@@ -141,14 +141,14 @@ class TransformerMultiEncoderLayer(nn.Module):
         #x=x_cr    
         x = F.dropout(x, p=self.dropout, training=self.training)
         x = residual + x
-        #x = self.self_attn_layer_norm(x)
+        # x = self.self_attn_layer_norm(x)
 
-        #residual = x
-        #x = self.activation_fn(self.fc1(x))
-        #x = F.dropout(x, p=self.activation_dropout, training=self.training)
-        #x = self.fc2(x)
-        #x = F.dropout(x, p=self.dropout, training=self.training)
-        #x = residual + x
-        #x = self.final_layer_norm(x)
+        # residual = x
+        # x = self.activation_fn(self.fc1(x))
+        # x = F.dropout(x, p=self.activation_dropout, training=self.training)
+        # x = self.fc2(x)
+        # x = F.dropout(x, p=self.dropout, training=self.training)
+        # x = residual + x
+        # x = self.final_layer_norm(x)
         return x, attn
         

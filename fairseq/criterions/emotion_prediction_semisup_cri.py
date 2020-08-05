@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-
+import csv
 
 from fairseq import metrics, utils
 from fairseq.criterions import FairseqCriterion, register_criterion
@@ -26,7 +26,7 @@ from sklearn.metrics import accuracy_score, f1_score
 class EmotionPredictionSemisupCriterion(FairseqCriterion):
 
     def __init__(self, task, classification_head_name, regression_target,regression_target_mos,\
-        binary_target_iemocap,softmax_target_meld,eval_metric,save_predictions):
+        binary_target_iemocap,softmax_target_meld,eval_metric,save_pred):
         super().__init__(task)
 
      
@@ -38,10 +38,28 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
         self.softmax_target_meld=softmax_target_meld
         self.eval_metric=eval_metric
 
-        if save_predictions is not None:
-            self.prediction_h = open(save_predictions, 'w')
-        else:
-            self.prediction_h = None
+        self.save_pred=save_pred
+
+        if self.save_pred is not None:
+
+        
+            final_header_label = ['True','Predicted']
+
+            hap_file=open('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/fairseq-wav-rob-tex-semi-sup-emocap-INT-FINAL/hap.csv', 'wt', newline ='')
+            sad_file=open('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/fairseq-wav-rob-tex-semi-sup-emocap-INT-FINAL/sad.csv', 'wt', newline ='')
+            ang_file=open('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/fairseq-wav-rob-tex-semi-sup-emocap-INT-FINAL/ang.csv', 'wt', newline ='')
+            neu_file=open('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/fairseq-wav-rob-tex-semi-sup-emocap-INT-FINAL/neu.csv', 'wt', newline ='')
+
+            self.hap_file = csv.writer(hap_file, delimiter=',')
+            self.sad_file = csv.writer(sad_file, delimiter=',')
+            self.ang_file = csv.writer(ang_file, delimiter=',')
+            self.neu_file = csv.writer(neu_file, delimiter=',')
+
+
+            self.hap_file.writerow(i for i in final_header_label)
+            self.sad_file.writerow(i for i in final_header_label)
+            self.ang_file.writerow(i for i in final_header_label)
+            self.neu_file.writerow(i for i in final_header_label)
 
 
 
@@ -95,14 +113,14 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
             logits=logits_dict['sup_logits']
             targets=logits_dict['sup_targets'].view(-1)
 
-            # mixup_logits=logits_dict['mixup_logits']  #we might need to average them out
-            # mixup_targets=logits_dict['mixup_targets']
+            mixup_logits=logits_dict['mixup_logits']  #we might need to average them out
+            mixup_targets=logits_dict['mixup_targets']
 
-            # ori_unsup=logits_dict['ori_uda_logits']
-            # aug_unsup=logits_dict['aug_uda_logits']
+            ori_unsup=logits_dict['ori_uda_logits']
+            aug_unsup=logits_dict['aug_uda_logits']
 
-            # contrastive_logits=logits_dict['simCLR_soft_logits']
-            # contrastive_soft_labels=logits_dict['simCLR_soft_labels']
+            contrastive_logits=logits_dict['simCLR_soft_logits']
+            contrastive_soft_labels=logits_dict['simCLR_soft_labels']
 
   
             sample_size = targets.numel()
@@ -120,29 +138,29 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
                 reduction='sum',
             )
 
-            # loss_uda = F.l1_loss(
-            #     logits_ori,
-            #     logits_aug,
-            #     reduction='sum',
-            # )
+            loss_uda = F.l1_loss(
+                logits_ori,
+                logits_aug,
+                reduction='sum',
+            )
 
-            # loss_mixup = F.l1_loss(
-            #     mixup_logits,
-            #     mixup_targets,
-            #     reduction='sum',
-            # )
+            loss_mixup = F.l1_loss(
+                mixup_logits,
+                mixup_targets,
+                reduction='sum',
+            )
 
-            # contrastive_soft_labels = contrastive_soft_labels.long().cuda()
+            contrastive_soft_labels = contrastive_soft_labels.long().cuda()
 
          
 
         
 
-            # loss_contrastive = F.nll_loss(
-            #     F.log_softmax(contrastive_logits, dim=-1, dtype=torch.float32),
-            #     contrastive_soft_labels,
-            #     reduction='sum',
-            # )
+            loss_contrastive = F.nll_loss(
+                F.log_softmax(contrastive_logits, dim=-1, dtype=torch.float32),
+                contrastive_soft_labels,
+                reduction='sum',
+            )
 
 
             if is_training:
@@ -174,10 +192,10 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
 
             logging_output = {
                 'loss': utils.item(loss.data) if reduce else loss.data,
-                # 'loss_sup': utils.item(loss_sup.data) if reduce else loss_sup.data,
-                # 'loss_uda': utils.item(loss_uda.data) if reduce else loss_uda.data,
-                # 'loss_mm': utils.item(loss_mixup.data) if reduce else loss_mixup.data,
-                # 'loss_con': utils.item(loss_contrastive.data) if reduce else loss_contrastive.data,
+                'loss_sup': utils.item(loss_sup.data) if reduce else loss_sup.data,
+                'loss_uda': utils.item(loss_uda.data) if reduce else loss_uda.data,
+                'loss_mm': utils.item(loss_mixup.data) if reduce else loss_mixup.data,
+                'loss_con': utils.item(loss_contrastive.data) if reduce else loss_contrastive.data,
                 'ntokens': sample_size,#sample['ntokens'],
                 'nsentences': sample_size,
                 'sample_size': sample_size,
@@ -237,15 +255,14 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
 
             targets = sup_target.long()
             logits=sup_logits
-            # ###########################################
-            # ##only for iemocap#########################
-            # logits=sup_logits.view(-1, 2)
-            # targets=torch.nn.functional.one_hot(targets, 4)
-            # targets= targets.view(-1)
-            # ############################################
+            ###########################################
+            ##only for iemocap#########################
+            logits=sup_logits.view(-1, 2)
+            targets=torch.nn.functional.one_hot(targets, 4)
+            targets= targets.view(-1)
+            ############################################
 
-     
-
+  
             loss_pure_sup = F.nll_loss(
                 F.log_softmax(logits, dim=-1, dtype=torch.float32),
                 targets,
@@ -255,7 +272,7 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
 
 
             #### only for IEMOCAP#####
-            #loss_pure_sup=loss_pure_sup/4 # because from one sample we make 4 losses
+            loss_pure_sup=loss_pure_sup/4 # because from one sample we make 4 losses
 
 
             loss_pure_sup=loss_pure_sup
@@ -274,7 +291,6 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
                 # targets,
                 # reduction='none')
 
-          
            
                 # total_steps=6320
                 # tsa_thresh = self.get_tsa_thresh(update_num, total_steps) #we use linear
@@ -288,20 +304,20 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
                 # if sup_sample_masked>0:
                 #     sup_loss_masked=sup_loss_masked/sup_sample_masked
 
-
-                ram_v=self.linear_rampup(update_num)
+                
+                
+                # ram_v=self.linear_rampup(update_num) #for mixmatch
 
         
+                # mixup_logits=logits_dict['mixup_logits']  #we might need to average them out
+                # mixup_targets=logits_dict['mixup_targets']
 
-                mixup_logits=logits_dict['mixup_logits']  #we might need to average them out
-                mixup_targets=logits_dict['mixup_targets']
 
+                # mixup_logits_sup=mixup_logits[0].unsqueeze(0)
+                # mixup_targets_sup=mixup_targets[0].unsqueeze(0)
 
-                mixup_logits_sup=mixup_logits[0].unsqueeze(0)
-                mixup_targets_sup=mixup_targets[0].unsqueeze(0)
-
-                mixup_logits_unsup=mixup_logits[1:,:].unsqueeze(0)
-                mixup_targets_unsup=mixup_targets[1:,:].unsqueeze(0)
+                # mixup_logits_unsup=mixup_logits[1:,:].unsqueeze(0)
+                # mixup_targets_unsup=mixup_targets[1:,:].unsqueeze(0)
 
       
                 # ####### only for IEMOCAP####################
@@ -313,35 +329,13 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
                 # ####################################################
 
 
-
-
-                ##################################################################################################
-                loss_sup_mix_init= torch.sum(F.log_softmax(mixup_logits_sup, dim=1) *-1* mixup_targets_sup, dim=1)
-
-
-                total_steps=20120
-                tsa_thresh = self.get_tsa_thresh(update_num, total_steps) #we use linear
-                larger_than_threshold = torch.exp(-loss_sup_mix_init) > tsa_thresh
-                loss_mask = torch.ones_like(targets, dtype=torch.float32)* (1 - larger_than_threshold.type(torch.float32))
-                sup_loss_masked = torch.sum(loss_sup_mix_init * loss_mask, dim=-1) 
-                sup_sample_masked=torch.max(torch.sum(loss_mask, dim=-1))
-
-                if sup_sample_masked>0:
-                    sup_loss_masked=sup_loss_masked/sup_sample_masked
-
-       
-                #Lx = torch.mean(torch.sum(F.log_softmax(mixup_logits_sup, dim=1) *-1* mixup_targets_sup, dim=1)) #for the batchsize of T be careful
-                Lu = torch.mean((torch.softmax(mixup_logits_unsup, dim=1) - mixup_targets_unsup)**2)
-
-                ##############################################################################################################################
-
-                loss=sup_loss_masked+ 100*Lu
-
             
-                
+                # Lx = -torch.mean(torch.sum(F.log_softmax(mixup_logits_sup, dim=1) * mixup_targets_sup, dim=1)) #for the batchsize of T be careful
+                # Lu = torch.mean((torch.softmax(mixup_logits_unsup, dim=1) - mixup_targets_unsup)**2)
 
-    
-                #loss=loss_pure_sup
+                # loss=sup_loss_masked + Lx + ram_v*10*Lu
+                loss=loss_pure_sup
+
     
             else:
 
@@ -367,6 +361,10 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
   
                 emos = ["Neutral", "Sad", "Angry", "Happy"]
 
+                if self.save_pred:
+            
+                    csv_f =[ self.neu_file, self.sad_file, self.ang_file, self.hap_file]
+
                 test_preds = logits.view(-1, 4, 2).cpu().detach().numpy()
                 test_truth = targets.view(-1, 4).cpu().detach().numpy()
 
@@ -377,6 +375,14 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
                     test_preds_i = np.argmax(test_preds[:,emo_ind],axis=1)
                     test_truth_i = test_truth[:,emo_ind]
 
+                    if self.save_pred:
+
+                        row=[test_truth_i[0],test_preds_i[0]]
+
+                        csv_write=csv_f[emo_ind]
+                        csv_write.writerow(row)
+
+                    
 
                     f1 = f1_score(test_truth_i, test_preds_i, average='weighted')
                     acc = accuracy_score(test_truth_i, test_preds_i)
@@ -389,6 +395,7 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
                     pred_i='pred_'+emos[emo_ind]
                     truth_i='truth_'+emos[emo_ind]
 
+               
                     logging_output.update({name_i : ncorrect_i})
                     logging_output.update({truth_i : test_truth_i})
                     logging_output.update({pred_i : test_preds_i})
@@ -574,11 +581,11 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
     def linear_rampup(self,current):
 
 
-        if (current >=4000):
+        if (current >=100):
             return 1.0
         else:
 
-            current = np.clip(current / 4000, 0.0, 1.0)
+            current = np.clip(current / 100, 0.0, 1.0)
             return float(current)
        
     def get_tsa_thresh(self,global_step, num_train_steps):
@@ -588,11 +595,7 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
         end=1
 
         training_progress = torch.tensor(float(global_step) / float(num_train_steps))
-
-        scale = 5
-        threshold = torch.exp((training_progress - 1) * scale)
-
-        #threshold = training_progress
+        threshold = training_progress
         # if schedule == 'linear_schedule':
         #     threshold = training_progress
         # elif schedule == 'exp_schedule':
@@ -705,8 +708,5 @@ class EmotionPredictionSemisupCriterion(FairseqCriterion):
 
 
 
-#with new mixmatch
-
-#CUDA_VISIBLE_DEVICES=2,3  python train.py --data ./T_data/data-log --restore-file None  --task emotion_semisup_prediction --reset-optimizer --reset-dataloader --reset-meters --init-token 0 --separator-token 2 --arch semiemo --criterion emotion_prediction_semisup_cri --num-classes 4  --dropout 0.1 --attention-dropout 0.1 --weight-decay 0.1 --optimizer adam --adam-betas "(0.9, 0.98)" --adam-eps 1e-06 --clip-norm 0.0 --lr-scheduler polynomial_decay --lr 1e-05 --total-num-update 4500 --warmup-updates 270 --max-epoch 20 --best-checkpoint-metric loss  --encoder-attention-heads 1 --batch-size 1 --encoder-layers-cross 1   --no-epoch-checkpoints --update-freq 8 --find-unused-parameters --ddp-backend=no_c10d --binary-target-iemocap   --a-only --t-only  --data-raw /hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/iemocap_semi_sup_user_ind --pooler-dropout 0.1  --log-interval 1
 
 

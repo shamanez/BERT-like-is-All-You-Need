@@ -182,7 +182,8 @@ class SemiemoModel(FairseqLanguageModel):
 
 
         sup_src=src['sup']
-        unsup_src=src['unsup']
+        #unsup_src=src['unsup']
+        unsup_src=None
 
        
         if sup_src is None or len(sup_src) == 0:
@@ -294,14 +295,14 @@ class SemiemoModel(FairseqLanguageModel):
         # if (unsup_src_tokens is not None) and (sup_src_tokens is not None):
 
          
-        #     mixup_logits,mixed_target=self.rep_mix_up(data_dict_sup, data_dict_unsup,sup_src_target,classification_head_name,return_all_hiddens)
+        #     mixup_logits,mixed_target=self.rep_mix_up_BA(data_dict_sup, data_dict_unsup,sup_src_target,classification_head_name,return_all_hiddens)
         #     final_loss_input.update(mixup_logits=mixup_logits,mixup_targets=mixed_target)
 
-            #print("no mixmatch")
+        #     #print("no mixmatch")
 
-            #use cross entropy
-            # contrastive_logits,contrastive_labels= self.SimCLR_unsup(data_dict_sup, data_dict_unsup,sup_src_target,classification_head_name,return_all_hiddens)
-            # final_loss_input.update(simCLR_soft_logits=contrastive_logits,simCLR_soft_labels=contrastive_labels)
+        #     #use cross entropy
+        #     # contrastive_logits,contrastive_labels= self.SimCLR_unsup(data_dict_sup, data_dict_unsup,sup_src_target,classification_head_name,return_all_hiddens)
+        #     # final_loss_input.update(simCLR_soft_logits=contrastive_logits,simCLR_soft_labels=contrastive_labels)
 
             
             
@@ -375,7 +376,6 @@ class SemiemoModel(FairseqLanguageModel):
                     # outputs_u2=outputs_u2.view(-1, 2)
                     ##################################################################################
 
-        
                     average_u_score_ori = (torch.softmax(outputs_u1, dim=1)+torch.softmax(outputs_u2, dim=1)) / 2
                     pt = average_u_score_ori**(1/Temparature)
                     targets_u=pt / pt.sum(dim=1, keepdim=True)
@@ -400,7 +400,7 @@ class SemiemoModel(FairseqLanguageModel):
                 # all_targets=all_targets.view(all_inputs.shape[0],-1) #only for binary emocap thing
 
             alpha=0.75
-       
+            Temparature=0.5
 
             l = np.random.beta(alpha, alpha)
             l = max(l, 1-l)      
@@ -489,6 +489,8 @@ class SemiemoModel(FairseqLanguageModel):
             mixed_input = l * input_a + (1 - l) * input_b  #mixing the inputs with 
             mixed_target = l * target_a + (1 - l) * target_b
             mixup_logits,_=self.classification_heads[classification_head_name](mixed_input,Final_rep=True)
+
+  
      
             return mixup_logits,mixed_target
 

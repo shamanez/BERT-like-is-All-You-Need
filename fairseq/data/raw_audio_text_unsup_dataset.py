@@ -44,9 +44,8 @@ class RawAudioTextUnsupDataset(FairseqDataset):
         manifest_text = os.path.join(self.base_manifest_path, '{}.tsv'.format(self.split+"_t"))
         manifest_size = os.path.join(self.base_manifest_path, '{}.tsv'.format(self.split+"_size"))
 
+
   
-
-
 
         with open(manifest_size, 'r') as f_s :
           
@@ -70,11 +69,10 @@ class RawAudioTextUnsupDataset(FairseqDataset):
             # self.root_dir_a =os.path.join(self.data_args.data_raw , 'train' ,'audio_token')     #f_a.readline().strip()
             # self.root_dir_t =os.path.join(self.data_args.data_raw , 'train' ,'text')   #f_t.readline().strip()
 
-            # self.root_dir_a =os.path.join('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/meld' , 'train' ,'audio_token')     #f_a.readline().strip()
-            # self.root_dir_t =os.path.join('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/meld' , 'train' ,'text')   #f_t.readline().strip()
+            self.root_dir_a =os.path.join('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/meld' , 'train' ,'audio_token')     #f_a.readline().strip()
+            self.root_dir_t =os.path.join('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/meld' , 'train' ,'text')   #f_t.readline().strip()
 
-            self.root_dir_a =os.path.join('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/mosei' , 'train' ,'audio_token')     #f_a.readline().strip()
-            self.root_dir_t =os.path.join('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/mosei' , 'train' ,'text')   #f_t.readline().strip()
+            #"/hpc/gsir059/INTERSPEECH/MOSI-SEMI/data-bin/meld/train"
 
 
             for line_a, line_t in zip(f_a,f_t):#,f_l):, line_l
@@ -82,16 +80,13 @@ class RawAudioTextUnsupDataset(FairseqDataset):
            
                 items_a = line_a.strip().split('\t')
                 items_t = line_t.strip().split('\t')
-               
 
                 assert items_a[0].split('.')[0] == items_t[0].split('.')[0] , "misalignment of data"
 
-
-    
                 self.fnames_audio.append(items_a[0].replace('.wav','.txt'))
                 self.fnames_text.append(items_t[0])
                 self.sizes.append(int(self.audio_sizes.get(items_a[0].split('.')[0])))
-            
+           
 
         self.shuffle = shuffle
 
@@ -278,7 +273,3 @@ class RawAudioTextUnsupDataset(FairseqDataset):
 
         order.append(self.sizes)
         return np.lexsort(order)
-
-
-
-

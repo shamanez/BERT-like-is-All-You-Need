@@ -214,7 +214,7 @@ class TransformerMultiEncoder(nn.Module):  #We might not need this part since we
                 
                 for i, n_in in enumerate(padding_mask_audio):
                     amount_not_masked=(len(n_in)- torch.sum(n_in, dim=0)).cpu().data.numpy()
-                    init_mask=torch.cuda.FloatTensor(amount_not_masked).uniform_() > 0.5 #this is a new mask in the length of non padded elements
+                    init_mask=torch.cuda.FloatTensor(amount_not_masked).uniform_() > 0.3 #this is a new mask in the length of non padded elements
                     final_mask=torch.cat((n_in[0:1],init_mask[1:],n_in[amount_not_masked:]), 0) #add the new augmented padding mask
                     aug_padding_mask_audio.append(final_mask.unsqueeze(0))
 
@@ -258,7 +258,7 @@ class TransformerMultiEncoder(nn.Module):  #We might not need this part since we
                 for i, n_in in enumerate(padding_mask_text):
            
                     amount_not_masked=(len(n_in)- torch.sum(n_in, dim=0)).cpu().data.numpy()
-                    init_mask=torch.cuda.FloatTensor(amount_not_masked).uniform_() > 0.5 #this is a new mask in the length of non padded elements
+                    init_mask=torch.cuda.FloatTensor(amount_not_masked).uniform_() > 0.1 #this is a new mask in the length of non padded elements
                     final_mask=torch.cat((n_in[0:1],init_mask[1:],n_in[amount_not_masked:]), 0) #add the new augmented padding mask
                     aug_padding_mask_text.append(final_mask.unsqueeze(0))
 

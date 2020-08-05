@@ -21,6 +21,7 @@ class RawAudioTextDataset(FairseqDataset):
         super().__init__()
 
 
+      
 
         self.data_args=data_args
 
@@ -43,11 +44,10 @@ class RawAudioTextDataset(FairseqDataset):
         self.min_sample_size = min_sample_size if min_sample_size is not None else self.max_sample_size
         self.base_manifest_path = base_path
 
-        # if data_split=="train":
-        #     self.base_manifest_path = './T_data/iemoca_f_t'
 
         self.split = data_split
-     
+
+      
 
         if self.data_args.binary_target_iemocap: 
         
@@ -78,8 +78,7 @@ class RawAudioTextDataset(FairseqDataset):
         
         manifest_label = os.path.join(self.base_manifest_path, '{}.csv'.format("label_file_"+self.split))
 
-
-
+ 
 
         with open(manifest_label, 'r') as f_l :
             self.root_dir_l = f_l.readline().strip()
@@ -104,11 +103,14 @@ class RawAudioTextDataset(FairseqDataset):
                 self.text_sizes[items_s[0].strip()] = items_s[1].strip()
                 self.audio_sizes[items_s[0].strip()] = items_s[2].strip() #for the sentiment use 2 from the list else 1
 
+      
 
         inter_n=0
         with open(manifest_audio, 'r') as f_a, open(manifest_text, 'r') as f_t:#, open(manifest_label, 'r') as f_l:
             self.root_dir_a =os.path.join(self.data_args.data_raw , data_split ,'audio_token')     #f_a.readline().strip()
             self.root_dir_t =os.path.join(self.data_args.data_raw , data_split ,'text')   #f_t.readline().strip()
+
+         
 
             # if self.split=='train':
             #         self.root_dir_a =os.path.join('/hpc/gsir059/INTERSPEECH/iemocap_data' , data_split ,'audio_token')     #f_a.readline().strip()
@@ -117,17 +119,19 @@ class RawAudioTextDataset(FairseqDataset):
            
             for line_a, line_t in zip(f_a,f_t):#,f_l):, line_l
 
-   
+                
            
                 items_a = line_a.strip().split('\t')
                 items_t = line_t.strip().split('\t')
+               
+    
+      
 
-
-                #inter_n=inter_n+1
+                # inter_n=inter_n+1
 
                 # if self.split=='train':
 
-                #     if inter_n>48:
+                #     if inter_n>32:
                 #         break
 
         
@@ -135,26 +139,10 @@ class RawAudioTextDataset(FairseqDataset):
                 assert items_a[0].split('.')[0] == items_t[0].split('.')[0] , "misalignment of data"
 
 
-                # session=items_t[0].split('.')[0].split("_")[2]
-
-             
-
-                # if  self.split=='valid':
-                #     if not(int(session)==4 or int(session)==5):
-                #         continue
-
-                # if  self.split=='train':
-                #     if (int(session)==4 or int(session)==5):
-                #         continue
-
-
-                # # if (int(session)==2 or int(session)==3 or int(session)==4):
-                # # if (int(session)==3 or int(session)==4):
-                
-
-                # #     continue
-
+    
                 emotion = self.labels.get(items_a[0].split('.')[0]) #If the label is not there, gives a none
+
+          
 
 
                 if self.data_args.regression_target_mos:
@@ -172,7 +160,8 @@ class RawAudioTextDataset(FairseqDataset):
          
                 
                 else:
-        
+
+                    
                     if emotion in included_emotions: # Only using the subset of emotions
 
 
@@ -180,23 +169,7 @@ class RawAudioTextDataset(FairseqDataset):
                         self.fnames_text.append(items_t[0])
                         self.sizes.append(int(self.audio_sizes.get(items_a[0].split('.')[0])))
 
-        
-
-      
-        # if  self.split=='train':  #all the data 3521     #full supervised
-
-  
-        #     c = list(zip(self.fnames_audio,self.fnames_text, self.sizes))
-
-        #     shuffled=random.shuffle(c)
-
-        #     self.fnames_audio, self.fnames_text,self.sizes = zip(*c)
-
-
-    
-        #     self.fnames_audio=self.fnames_audio[0:250]
-        #     self.fnames_text=self.fnames_text[0:250]
-        #     self.sizes=self.sizes[0:250]
+   
 
         if self.data_args.binary_target_iemocap:
 
@@ -240,6 +213,9 @@ class RawAudioTextDataset(FairseqDataset):
 
 
     def __getitem__(self, index):
+
+
+        
 
     
         audio_file = self.fnames_audio[index]
@@ -413,16 +389,6 @@ class RawAudioTextDataset(FairseqDataset):
         filtering a dataset with ``--max-positions``."""
         return min(self.sizes[index], self.max_sample_size)
 
-    # def ordered_indices(self):  #Need to customize this
-    #     """Return an ordered list of indices. Batches will be constructed based
-    #     on this order."""
-
-    #     if self.shuffle:  #Shuffeling the training dataset
-    #         order = np.random.permutation(len(self))
-    #     else:
-    #         order = np.arange(len(self))
- 
-    #     return order
 
 
     def ordered_indices(self):

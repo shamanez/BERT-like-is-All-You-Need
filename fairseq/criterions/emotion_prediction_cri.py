@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-import csv
+
 
 from fairseq import metrics, utils
 from fairseq.criterions import FairseqCriterion, register_criterion
@@ -38,17 +38,8 @@ class EmotionPredictionCriterion(FairseqCriterion):
         self.softmax_target_meld=softmax_target_meld
         self.eval_metric=eval_metric
 
-        final_header_label = ['True','Predicted']
-        mos_file=open('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/fairseq-wav-rob-tex-semi-sup-emocap-test-mosei/mos.csv', 'wt', newline ='')
-        self.mos_file = csv.writer(mos_file, delimiter=',')
-        self.mos_file.writerow(i for i in final_header_label)
-
         if save_predictions is not None:
-            final_header_label = ['True','Predicted']
-            mos_file=open('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/fairseq-wav-rob-tex-semi-sup-emocap-test-mosei/mos.csv', 'wt', newline ='')
-            self.mos_file = csv.writer(mos_file, delimiter=',')
-            self.mos_file.writerow(i for i in final_header_label)
-            #self.prediction_h = open(save_predictions, 'w')
+            self.prediction_h = open(save_predictions, 'w')
         else:
             self.prediction_h = None
 
@@ -81,8 +72,9 @@ class EmotionPredictionCriterion(FairseqCriterion):
             'emotion_classification_head' in model.classification_heads, \
             "model must provide emotion_classification_head for --criterion=emotion_prediction"
 
-   
-       
+        
+
+        
 
         logits, _ = model(
             sample['net_input'],
@@ -90,10 +82,13 @@ class EmotionPredictionCriterion(FairseqCriterion):
             classification_head_name='emotion_classification_head',
         )
 
+
     
         
         targets = model.get_targets(sample, [logits]).view(-1)
         sample_size = targets.numel()
+
+       
 
      
 
@@ -101,8 +96,6 @@ class EmotionPredictionCriterion(FairseqCriterion):
 
       
         if self.regression_target_mos:
-
-          
     
             logits = logits.squeeze().float()
             targets = targets.float()
@@ -124,9 +117,14 @@ class EmotionPredictionCriterion(FairseqCriterion):
 
             ncorrect=(pred == truth).sum().item()
 
-
+            if self.prediction_h is not None:
               
-    
+                for i, (id, pred) in enumerate(zip(sample['id'].tolist(), pred.tolist())):
+                    if targets is not None:
+                        label = targets[i].item()
+                        print('{}\t{}\t{}'.format(id, pred, label), file=self.prediction_h)
+                    else:
+                        print('{}\t{}'.format(id, pred), file=self.prediction_h)
 
             logging_output = {
                 'loss': utils.item(loss.data) if reduce else loss.data,
@@ -159,15 +157,9 @@ class EmotionPredictionCriterion(FairseqCriterion):
                 test_truth_a7_np = np.clip(test_truth_np, a_min=-3., a_max=3.)
 
 
+
                 binary_truth = (test_truth_a7_np[non_zeros] > 0)
                 binary_preds = (test_preds_a7_np[non_zeros] > 0)
-
-
-
-                row=[binary_truth[0],binary_preds[0]]
-                self.mos_file.writerow(row)
-
-        
 
                 ncorrect_binary=(binary_preds == binary_truth).sum().item()
 
@@ -197,6 +189,9 @@ class EmotionPredictionCriterion(FairseqCriterion):
 
             logits=logits.view(-1, 2)
             targets= targets.view(-1)
+
+
+     
 
     
             
@@ -258,10 +253,7 @@ class EmotionPredictionCriterion(FairseqCriterion):
                     logging_output.update({truth_i : test_truth_i})
                     logging_output.update({pred_i : test_preds_i})
 
-                    # tp = (test_truth_i * test_preds_i).sum()   #.to(torch.float32)
-                    # tn = ((1 - test_truth_i) * (1 - test_preds_i))#.sum().to(torch.float32)
-                    # fp = ((1 - test_truth_i) * test_preds_i).sum()#.to(torch.float32)
-                    # fn = (test_truth_i * (1 - test_preds_i)).sum()#.to(torch.float32)
+   
 
       
 
@@ -329,111 +321,6 @@ class EmotionPredictionCriterion(FairseqCriterion):
        
     
         return loss, sample_size, logging_output
-
-    # @staticmethod        #accuracy is here
-    # def aggregate_logging_outputs(logging_outputs):
-    #     """Aggregate logging outputs from data parallel training."""
-    #     loss_sum = sum(log.get('loss', 0) for log in logging_outputs)
-    #     ntokens = sum(log.get('ntokens', 0) for log in logging_outputs)
-    #     nsentences = sum(log.get('nsentences', 0) for log in logging_outputs)
-    #     sample_size = sum(log.get('sample_size', 0) for log in logging_outputs)
-
-    #     nsentences_BA=nsentences/4
-
-    #     agg_output = {
-    #         'loss': loss_sum / sample_size / math.log(2),
-    #         'ntokens': ntokens,
-    #         'nsentences': nsentences,
-    #         'sample_size': sample_size,
-    #     }
-
-    #     if len(logging_outputs) > 0 and 'ncorrect' in logging_outputs[0]:
-    #         ncorrect = sum(log.get('ncorrect', 0) for log in logging_outputs)
-    #         agg_output.update(accuracy=ncorrect/nsentences)
-
-
-    #     if 'ncorrect_Neutral' in logging_outputs[0]:
-    #         ncorrect_Neutral = sum(log.get('ncorrect_Neutral', 0) for log in logging_outputs)
-    #         agg_output.update(accuracy_neutral=ncorrect_Neutral/nsentences_BA)
-
-    #         ncorrect_Sad = sum(log.get('ncorrect_Sad', 0) for log in logging_outputs)
-    #         agg_output.update(accuracy_sad=ncorrect_Sad/nsentences_BA)
-
-
-    #         ncorrect_Angry = sum(log.get('ncorrect_Angry', 0) for log in logging_outputs)
-    #         agg_output.update(accuracy_angry=ncorrect_Angry/nsentences_BA)
-
-
-    #         ncorrect_Happy = sum(log.get('ncorrect_Happy', 0) for log in logging_outputs)
-    #         agg_output.update(accuracy_happy=ncorrect_Happy/nsentences_BA)
-
-
-    #     #Make the batchzize one ither wuse this scikit learn thing will give wring results
-    #     if 'pred_Neutral' in logging_outputs[0]:
-    #         pred_Neutral= np.asarray([log.get('pred_Neutral', 0) for log in logging_outputs])
-    #         truth_Neutral= np.asarray([log.get('truth_Neutral', 0) for log in logging_outputs])
-
-    #         f1_neutral = f1_score(truth_Neutral, pred_Neutral, average='weighted')
-    #         acc_neutral = accuracy_score(truth_Neutral, pred_Neutral)
-    #         agg_output.update(accuracy_neu=acc_neutral)
-    #         agg_output.update(f1_neu=f1_neutral)
-
-
-    #         pred_Sad= np.asarray([log.get('pred_Sad', 0) for log in logging_outputs])
-    #         truth_Sad= np.asarray([log.get('truth_Sad', 0) for log in logging_outputs])
-
-            
-    #         f1_sad = f1_score(truth_Sad, pred_Sad, average='weighted')
-    #         acc_sad = accuracy_score(truth_Sad, pred_Sad)
-    #         agg_output.update(acc_sad=acc_sad)
-    #         agg_output.update(f1_sad=f1_sad)
-
-
-
-    #         pred_Angry= np.asarray([log.get('pred_Angry', 0) for log in logging_outputs])
-    #         truth_Angry= np.asarray([log.get('truth_Angry', 0) for log in logging_outputs])
-
-            
-    #         f1_angry = f1_score(truth_Angry, pred_Angry, average='weighted')
-    #         acc_angry = accuracy_score(truth_Angry, pred_Angry)
-    #         agg_output.update(accuracy_ang=acc_angry)
-    #         agg_output.update(f1_and=f1_angry)
-
-
-    #         pred_Happy= np.asarray([log.get('pred_Happy', 0) for log in logging_outputs])
-    #         truth_Happy= np.asarray([log.get('truth_Happy', 0) for log in logging_outputs])  
-
-    #         f1_happy = f1_score(truth_Happy, pred_Happy, average='weighted')
-    #         acc_happy = accuracy_score(truth_Happy, pred_Happy)
-
-    #         agg_output.update(accuracy_hap=acc_happy)
-    #         agg_output.update(f1_hap=f1_happy)
-
-            
-    #     if 'pred_mos' in logging_outputs[0]:
-    #         pred_mos= np.asarray([log.get('pred_mos', 0) for log in logging_outputs])
-    #         truth_mos= np.asarray([log.get('truth_mos', 0) for log in logging_outputs])
-
-    #         f1_mos = f1_score(truth_mos, pred_mos, average='weighted')
-    #         acc_mos = accuracy_score(truth_mos, pred_mos)
-    
-    #         agg_output.update(accuracy_mos_binary=acc_mos)
-    #         agg_output.update(f1_mos_binary=f1_mos)
-
-    #     if 'pred_mos_real' in logging_outputs[0]:
-    #         pred_mos_real= np.array([log.get('pred_mos_real', 0) for log in logging_outputs]).flatten()
-    #         truth_mos_real= np.array([log.get('truth_mos_real', 0) for log in logging_outputs]).flatten()
-
-
-    #         corr = np.corrcoef(pred_mos_real, truth_mos_real)[0][1]
-     
-    #         agg_output.update(corre=corr)
-   
-
-
-    #     if sample_size != ntokens:
-    #         agg_output['nll_loss'] = loss_sum / ntokens / math.log(2)
-    #     return agg_output
 
 
 

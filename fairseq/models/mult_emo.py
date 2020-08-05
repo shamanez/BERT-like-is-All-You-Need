@@ -49,13 +49,15 @@ class RobertaEMOModel(FairseqLanguageModel):
 
         self.classification_heads = nn.ModuleDict()
 
+       
+
         ############################## Adding the pretrained SSL models to extract features###############
 
         if self.args.a_only or self.args.all_in:
            
-            self.roberta_vqwav2vec = RobertaModel.from_pretrained('/hpc/gsir059/INTERSPEECH/MOSI-SEMI/trained_ssl/wav2vec/vq-wav2vec-Kmeans-Roberta', checkpoint_file='bert_kmeans.pt')
+            self.roberta_vqwav2vec = RobertaModel.from_pretrained('/hpc/gsir059/phd1st/trained_ssl/wav2vec/vq-wav2vec-Kmeans-Roberta', checkpoint_file='bert_kmeans.pt')
 
-            # for param in self.roberta_wav2vec.parameters():
+            # for param in  self.roberta_vqwav2vec.parameters():
             #     param.requires_grad = False
 
 
@@ -67,6 +69,7 @@ class RobertaEMOModel(FairseqLanguageModel):
             self.model_text2vec=roberta
             # for param in self.model_text2vec.parameters():
             #     param.requires_grad = False
+
 
 
 
@@ -372,32 +375,14 @@ class RobertaEMOClassificationHead(nn.Module):
     def forward(self, features, **kwargs):
 
 
-        if self.args.t_only:
-            Final=features['j_text']
+        T=features['j_text']
 
-
-        if self.args.a_only:
-            Final=features['j_aud']
+        A=features['j_aud']
       
-      
-
+        Final=torch.cat((T,A),dim=1)
         
-        if (self.args.all_in) or (self.args.a_only and self.args.t_only):
 
-            if self.args.stack_up:
-
-                T_A=features['t2a_r']
-                A_T=features['a2t_r']
-                Final=torch.cat((T_A,A_T),dim=1)
-
-            else:
-                T_A=features['j_text']
-                A_T=features['j_aud']
-                Final=torch.cat((T_A,A_T),dim=1)
-
-
-
-
+    
         x =Final# features[:, 0, :]  # take <s> token (equiv. to [CLS])
         x = self.dropout(x)
         x = self.out_proj(x)

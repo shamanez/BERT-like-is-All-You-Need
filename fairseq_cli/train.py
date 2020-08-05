@@ -53,12 +53,20 @@ def main(args, init_distributed=False):
     # Print args
     logger.info(args)
 
+
+
     # Setup task, e.g., translation, language modeling, etc.
     task = tasks.setup_task(args)
 
+  
+
     # Load valid dataset (we load training data below, based on the latest checkpoint)
     for valid_sub_split in args.valid_subset.split(','):
+ 
         task.load_dataset(valid_sub_split, combine=False, epoch=1)
+
+    
+
 
 
     # Build model and criterion
@@ -71,6 +79,7 @@ def main(args, init_distributed=False):
         sum(p.numel() for p in model.parameters()),
         sum(p.numel() for p in model.parameters() if p.requires_grad),
     ))
+
 
     # Build trainer
     if args.model_parallel_size == 1:
@@ -219,6 +228,8 @@ def train(args, trainer, task, epoch_itr):
 
 
 def get_training_stats(stats):
+
+   
     if 'nll_loss' in stats and 'ppl' not in stats:
         stats['ppl'] = utils.get_perplexity(stats['nll_loss'])
     stats['wall'] = round(metrics.get_meter('default', 'wall').elapsed_time, 0)
@@ -250,6 +261,9 @@ def validate(args, trainer, task, epoch_itr, subsets):
             shard_id=args.distributed_rank,
             num_workers=args.num_workers,
         ).next_epoch_itr(shuffle=False)
+
+     
+
         progress = progress_bar.progress_bar(
             itr,
             log_format=args.log_format,
@@ -265,13 +279,20 @@ def validate(args, trainer, task, epoch_itr, subsets):
         # create a new root metrics aggregator so validation metrics
         # don't pollute other aggregators (e.g., train meters)
         with metrics.aggregate(new_root=True) as agg:
+
+
             for sample in progress:
+
                 trainer.valid_step(sample)
+
+        
+
 
         # log validation stats
         stats = get_valid_stats(args, trainer, agg.get_smoothed_values())
         progress.print(stats, tag=subset, step=trainer.get_num_updates())
 
+      
         valid_losses.append(stats[args.best_checkpoint_metric])
     return valid_losses
 
@@ -279,6 +300,8 @@ def validate(args, trainer, task, epoch_itr, subsets):
 def get_valid_stats(args, trainer, stats):
     if 'nll_loss' in stats and 'ppl' not in stats:
         stats['ppl'] = utils.get_perplexity(stats['nll_loss'])
+
+    
     stats['num_updates'] = trainer.get_num_updates()
     if hasattr(checkpoint_utils.save_checkpoint, 'best'):
         key = 'best_{0}'.format(args.best_checkpoint_metric)

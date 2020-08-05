@@ -71,13 +71,14 @@ class EmotionSemisupPredictionTask(FairseqTask):
         parser.add_argument('--softmax-target-binary-meld', action='store_true', default=False)
 
         parser.add_argument('--eval-metric', action='store_true', default=False)  # This is to get the paper evaluations for each dataset
+        parser.add_argument('--save-pred', action='store_true', default=False)
                             
 
     def __init__(self, args):
         super().__init__(args)
 
         #self.data_loaders=['sup', 'unsup'] #how many datasets we need to run
-        self.data_loaders=['sup','unsup']  # two datasets right now
+        self.data_loaders=['sup']  # two datasets right now
 
 
     @classmethod
