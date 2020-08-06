@@ -1,5 +1,5 @@
-# Imo_Trimodal_SSL
-This repositary consist the pytorch code for Multimodal Emotion Recogntion with SSL Embeddings
+# Multimodal Speech Emotion Recogntion with Pretrained BERT-like Architectures
+This repositary consist the pytorch code for Multimodal Emotion Recogntion with pretreined Roberta and Speech-BERT.
 
 
 # Basic strucutre of the code
