@@ -44,7 +44,7 @@ This repositary consist the pytorch code for Multimodal Emotion Recogntion with 
 
 # Prerequest models 
 
-### Please use following links to downlaod the pretrained SSL models.
+### Please use following links to downlaod the pretrained SSL models and save them in a seperate folder named pretrained_ssl.
 
 1. For speech fetures - [VQ-wav2vec](https://github.com/pytorch/fairseq/tree/master/examples/wav2vec) 
 2. For sentence (text) features - [Roberta](https://github.com/pytorch/fairseq/blob/master/examples/roberta/README.md)
@@ -52,17 +52,19 @@ This repositary consist the pytorch code for Multimodal Emotion Recogntion with 
 
 # Preprocessing data.
 
+### We tokenized both speech and text data and then feed in to the algorithm training.
+
 1. For text data, we first tokenized it with Roberta tokenizer and save each example in to seperate text files.
 2. To preprocess speech data please refer the script given in [convert_aud_to_token.py](https://github.com/shamanez/BERT-like-is-All-You-Need/tree/master/SPEECH-BERT-TOKENIZATION).
 3. The preprocessed datasets and their labels can be found in the [this google drive](---).
 
 
 
-## Terminal Commands 
+# Terminal Commands 
 
 We followed the Fairseq terminal commands to train and validate our models.
 
-# Useful commands 
+## Useful commands 
 
 1. --data - folder that contains filenames, sizes and labels of your raw data (please refer to the T_data folder). 
 2. --data-raw - Path of your raw data folder that contains tokenized speech and text.
@@ -70,12 +72,11 @@ We followed the Fairseq terminal commands to train and validate our models.
 4. --regression-target-mos - train the model with CMU-MOSEI/CMU-MOSI data for sentiment score.
 5. For dataset specific traing commands please refer to [emotion_prediction.py]{https://github.com/shamanez/BERT-like-is-All-You-Need/blob/master/fairseq/tasks/emotion_prediction.py}.
 
-# Training Commands
+## Training Command
 
-CUDA_VISIBLE_DEVICES=8,7  python train.py --data ./T_data/old/iemocap-cross --restore-file None  --task emotion_prediction --reset-optimizer --reset-dataloader --reset-meters --init-token 0 --separator-token 2 --arch emomult --criterion  emotion_prediction_cri  --num-classes 8  --dropout 0.1 --attention-dropout 0.1 --weight-decay 0.1 --optimizer adam --adam-betas "(0.9, 0.98)" --adam-eps 1e-06 --clip-norm 0.0 --lr-scheduler polynomial_decay --lr 1e-05 --total-num-update 2760  --warmup-updates 165  --max-epoch 10 --best-checkpoint-metric loss  --encoder-attention-heads 2 --batch-size 1 --encoder-layers-cross 1   --no-epoch-checkpoints --update-freq 8 --find-unused-parameters --ddp-backend=no_c10d --binary-target-iemocap    --a-only --t-only  --pooler-dropout 0.1  --log-interval 1  --data-raw /hpc/gsir059/INTERSPEECH/iemocap_data/  
+CUDA_VISIBLE_DEVICES=8,7  python train.py --data ./T_data/iemocap --restore-file None  --task emotion_prediction --reset-optimizer --reset-dataloader --reset-meters --init-token 0 --separator-token 2 --arch robertaEMO --criterion  emotion_prediction_cri  --num-classes 8  --dropout 0.1 --attention-dropout 0.1 --weight-decay 0.1 --optimizer adam --adam-betas "(0.9, 0.98)" --adam-eps 1e-06 --clip-norm 0.0 --lr-scheduler polynomial_decay --lr 1e-05 --total-num-update 2760  --warmup-updates 165  --max-epoch 10 --best-checkpoint-metric loss  --encoder-attention-heads 2 --batch-size 1 --encoder-layers-cross 1   --no-epoch-checkpoints --update-freq 8 --find-unused-parameters --ddp-backend=no_c10d --binary-target-iemocap    --a-only --t-only  --pooler-dropout 0.1  --log-interval 1  --data-raw ./iemocap_data/  
+
+## Validation Command
 
 
-###################### Validation #############################
-
-
-CUDA_VISIBLE_DEVICES=1 python validate.py  --data ./T_data/emocap   --path '/home/gsir059/Music/Eval-Valid/Imo_Multi-iemocap/checkpoints/checkpoint_best.pt' --task emotion_prediction --valid-subset test --batch-size 4
+CUDA_VISIBLE_DEVICES=1 python validate.py  --data ./T_data/iemocap   --path './checkpoints/checkpoint_best.pt' --task emotion_prediction --valid-subset test --batch-size 4
