@@ -1,6 +1,8 @@
 # Multimodal Speech Emotion Recogntion with Pretrained BERT-like Architectures
 This repositary consist the pytorch code for Multimodal Emotion Recogntion with pretreined Roberta and Speech-BERT.
 
+![Model Overviw](https://github.com/shamanez/BERT-like-is-All-You-Need/blob/master/pipeline.jpg)
+
 
 # Basic strucutre of the code
 
