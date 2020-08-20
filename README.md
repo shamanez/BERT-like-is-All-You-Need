@@ -73,7 +73,7 @@ We followed the Fairseq terminal commands to train and validate our models.
 2. --data-raw - Path of your raw data folder that contains tokenized speech and text.
 3. --binary-target-iemocap - train the model with Iemocap data for binary accuracy.
 4. --regression-target-mos - train the model with CMU-MOSEI/CMU-MOSI data for sentiment score.
-5. For dataset specific traing commands please refer to [emotion_prediction.py]{https://github.com/shamanez/BERT-like-is-All-You-Need/blob/master/fairseq/tasks/emotion_prediction.py}.
+5. For dataset specific traing commands please refer to [emotion_prediction.py](https://github.com/shamanez/BERT-like-is-All-You-Need/blob/master/fairseq/tasks/emotion_prediction.py).
 
 ## Training Command
 
