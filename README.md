@@ -1,4 +1,4 @@
-# [Multimodal Speech Emotion Recogntion with Pretrained BERT-like Architectures](https://arxiv.org/abs/2008.06682)
+# [Jointly Fine-Tuning “BERT-like” Self Supervised Models to Improve Multimodal Speech Emotion Recognition](https://arxiv.org/abs/2008.06682)
 
 ![Model Overviw](https://github.com/shamanez/BERT-like-is-All-You-Need/blob/master/pipeline.jpg)
 
