@@ -59,7 +59,7 @@ This repositary consist the pytorch code for Multimodal Emotion Recogntion with 
 
 1. For text data, we first tokenized it with Roberta tokenizer and save each example in to seperate text files.
 2. To preprocess speech data please refer the script given in [convert_aud_to_token.py](https://github.com/shamanez/BERT-like-is-All-You-Need/tree/master/SPEECH-BERT-TOKENIZATION).
-3. The preprocessed datasets and their labels can be found in the [this google drive](---).
+3. The preprocessed datasets and their labels can be found in the [this google drive](https://drive.google.com/drive/folders/1oiAiY0QgIpP3Wb9bPfC4hYdGrJ1MmDAP?usp=sharing).
 
 
 
