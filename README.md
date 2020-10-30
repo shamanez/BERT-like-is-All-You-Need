@@ -77,7 +77,7 @@ We followed the Fairseq terminal commands to train and validate our models.
 
 ## Training Command
 
-CUDA_VISIBLE_DEVICES=8,7  python train.py --data ./T_data/iemocap --restore-file None  --task emotion_prediction --reset-optimizer --reset-dataloader --reset-meters --init-token 0 --separator-token 2 --arch robertaEMO --criterion  emotion_prediction_cri  --num-classes 8  --dropout 0.1 --attention-dropout 0.1 --weight-decay 0.1 --optimizer adam --adam-betas "(0.9, 0.98)" --adam-eps 1e-06 --clip-norm 0.0 --lr-scheduler polynomial_decay --lr 1e-05 --total-num-update 2760  --warmup-updates 165  --max-epoch 10 --best-checkpoint-metric loss  --encoder-attention-heads 2 --batch-size 1 --encoder-layers-cross 1   --no-epoch-checkpoints --update-freq 8 --find-unused-parameters --ddp-backend=no_c10d --binary-target-iemocap    --a-only --t-only  --pooler-dropout 0.1  --log-interval 1  --data-raw ./iemocap_data/  
+CUDA_VISIBLE_DEVICES=8,7  python train.py --data ./T_data/iemocap --restore-file None  --task emotion_prediction --reset-optimizer --reset-dataloader --reset-meters --init-token 0 --separator-token 2 --arch robertEMO_large --criterion  emotion_prediction_cri  --num-classes 8  --dropout 0.1 --attention-dropout 0.1 --weight-decay 0.1 --optimizer adam --adam-betas "(0.9, 0.98)" --adam-eps 1e-06 --clip-norm 0.0 --lr-scheduler polynomial_decay --lr 1e-05 --total-num-update 2760  --warmup-updates 165  --max-epoch 10 --best-checkpoint-metric loss  --encoder-attention-heads 2 --batch-size 1 --encoder-layers-cross 1   --no-epoch-checkpoints --update-freq 8 --find-unused-parameters --ddp-backend=no_c10d --binary-target-iemocap    --a-only --t-only  --pooler-dropout 0.1  --log-interval 1  --data-raw ./iemocap_data/  
 
 ## Validation Command
 
