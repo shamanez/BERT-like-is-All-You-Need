@@ -55,7 +55,7 @@ class EmotionDataPreprocessing():
         #AUDIO
         if audio_path:
             #all_audio_features = []
-            audio_files = sorted(glob.glob(audio_path+"*.pt"))
+            audio_files = sorted(glob.glob(audio_path+"*.wav"))
             print(len(audio_files)," audio_files found")
 
             for audio_file in audio_files:
