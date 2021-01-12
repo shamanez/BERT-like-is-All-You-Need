@@ -11,6 +11,8 @@ import glob
 
 import argparse
 
+import soundfile as sf
+
 
 from fairseq.models.wav2vec import Wav2VecModel
 from fairseq.models.roberta import RobertaModel
@@ -41,8 +43,13 @@ class EmotionDataPreprocessing():
 
 
     def preprocess_audio_file(self,filename):
+        
+        
+        wav, curr_sample_rate = sf.read(filename)
 
-        feats_audio =torch.load(filename)#torch.from_numpy(wav).float()
+        feats_audio =torch.from_numpy(wav).float()
+        
+        #feats_audio =torch.load(filename)#if you direclty using .pt files
         
         assert feats_audio.dim() == 1, feats_audio.dim()
         print("Audio: ",feats_audio.size())
@@ -56,6 +63,7 @@ class EmotionDataPreprocessing():
         if audio_path:
             #all_audio_features = []
             audio_files = sorted(glob.glob(audio_path+"*.wav"))
+            #audio_files = sorted(glob.glob(audio_path+"*.pt")) #if you are direclty using .pt files other that wav files.
             print(len(audio_files)," audio_files found")
 
             for audio_file in audio_files:
