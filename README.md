@@ -83,3 +83,8 @@ CUDA_VISIBLE_DEVICES=8,7  python train.py --data ./T_data/iemocap --restore-file
 
 
 CUDA_VISIBLE_DEVICES=1 python validate.py  --data ./T_data/iemocap   --path './checkpoints/checkpoint_best.pt' --task emotion_prediction --valid-subset test --batch-size 4
+
+
+# Aditional 
+
+If you want to pre-process data again please refer to this [repositary](https://github.com/shamanez/MAIA-Data-Processing).
